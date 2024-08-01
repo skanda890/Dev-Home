@@ -256,20 +256,8 @@ public partial class BarWindowViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public void LaunchInsights()
-    {
-        ToggleExpandedContentVisibility();
-
-        // And navigate to the appropriate page
-        var barWindow = Application.Current.GetService<PrimaryWindow>().DBarWindow;
-        barWindow?.NavigateTo(typeof(InsightsPageViewModel));
-    }
-
-    [RelayCommand]
     public void ManageExternalToolsButton()
     {
-        ToggleExpandedContentVisibility();
-
         var barWindow = Application.Current.GetService<PrimaryWindow>().DBarWindow;
         barWindow?.NavigateToPiSettings(typeof(AdditionalToolsViewModel).FullName!);
     }
@@ -363,42 +351,9 @@ public partial class BarWindowViewModel : ObservableObject
         }
     }
 
-    public void ExternalToolButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is Button clickedButton)
-        {
-            if (clickedButton.Tag is ExternalTool tool)
-            {
-                InvokeTool(tool, TargetAppData.Instance.TargetProcess?.Id, TargetAppData.Instance.HWnd);
-            }
-        }
-    }
-
     public void ManageExternalToolsButton_ExternalToolLaunchRequest(object sender, ExternalTool tool)
     {
-        InvokeTool(tool, TargetAppData.Instance.TargetProcess?.Id, TargetAppData.Instance.HWnd);
-    }
-
-    private async void InvokeTool(ExternalTool tool, int? pid, HWND hWnd)
-    {
-        try
-        {
-            var process = await tool.Invoke(pid, hWnd);
-        }
-        catch (Exception ex)
-        {
-            _log.Error(ex, "Tool launched failed");
-
-            var builder = new StringBuilder();
-            builder.AppendLine(ex.Message);
-            if (ex.InnerException is not null)
-            {
-                builder.AppendLine(ex.InnerException.Message);
-            }
-
-            var errorMessage = string.Format(CultureInfo.CurrentCulture, builder.ToString(), tool.Executable);
-            PInvoke.MessageBox(HWND.Null, errorMessage, _errorTitleText, MESSAGEBOX_STYLE.MB_ICONERROR);
-        }
+        tool.InvokeTool(null, TargetAppData.Instance.TargetProcess?.Id, TargetAppData.Instance.HWnd);
     }
 
     [RelayCommand]
